@@ -1,0 +1,24 @@
+name: Security audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpan-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Perl
+        uses: shogo82148/actions-setup-perl@v1.44.0
+        with:
+          perl-version: '5.44.0'
+      - name: Install dependencies for audit
+        run: |
+          cpanm --notest --local-lib-contained audit --installdeps .
+          cpanm --notest --local-lib-contained audit CPAN::Audit Module::Extract::VERSION
+      - name: Audit installed dependencies
+        run: perl -I"$GITHUB_WORKSPACE/audit/lib/perl5" audit/bin/cpan-audit installed audit --no-corelist
